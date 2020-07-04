@@ -89,13 +89,14 @@ ADD postgresql-${jdbcversion}.jar /opt
 ####################
 # Add necessary mods to Renviron file
 ADD Renviron /usr/local/lib/R/etc/
-ADD hdfs-site.xml core-site.xml log4j.properties /opt/hadoop/etc/hadoop/
+# ADD hdfs-site.xml core-site.xml log4j.properties /opt/hadoop/etc/hadoop/
+ADD log4j.properties /opt/hadoop/etc/hadoop/
 # Create symlink to actual Rscript
 RUN ln -s /usr/local/bin/Rscript /usr/bin/Rscript
 
 # Add path to profile so commands are found if attach to the container
 RUN echo "PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'" >> /etc/profile
-ENV PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'
+ENV PATH="/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH"
 
 # USER rstudio
 # Install rspark test files
@@ -106,12 +107,12 @@ cd /tmp/foo && \
 git archive master | tar -x -C /home/rstudio/rspark-tests  && \
 cd && \
 rm -rf /tmp/foo
-RUN mkdir /home/rstudio/rspark-tutorial && \
-git clone https://github.com/jharner/rspark-tutorial.git /tmp/foo && \
-cd /tmp/foo && \
-git archive master | tar -x -C /home/rstudio/rspark-tutorial  && \
-cd && \
-rm -rf /tmp/foo
+# RUN mkdir /home/rstudio/rspark-tutorial && \
+# git clone https://github.com/jharner/rspark-tutorial.git /tmp/foo && \
+# cd /tmp/foo && \
+# git archive master | tar -x -C /home/rstudio/rspark-tutorial  && \
+# cd && \
+# rm -rf /tmp/foo
 RUN chown -R rstudio:rstudio /home/rstudio
 
 # USER root
