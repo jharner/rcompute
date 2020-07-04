@@ -12,32 +12,22 @@ ARG hiveversion=2.1.1
 ARG sparkversion=2.4.6
 ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
 
-# ENV JAVA_HOME /usr/lib/jvm/default-java
-
-# COPY postgresKey.asc openjdkKey.asc /tmp/
-RUN apt-get update && apt-get install -y  apt-utils apt-transport-https ca-certificates wget dirmngr gnupg software-properties-common tzdata git
+RUN apt-get update && \
+    apt-get install -y  apt-utils apt-transport-https ca-certificates wget dirmngr gnupg software-properties-common tzdata && \
+    apt-get clean
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
-#	apt-key add /tmp/openjdkKey.asc && \
-    add-apt-repository --yes 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main'
-#    wget --quiet -O - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | apt-key add - && \
-#    add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/
-#    curl https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/dists/bionic/Release
-# add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/
-# apt-key add /tmp/postgresKey.asc && \
+    add-apt-repository --yes 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' && \
+    apt-get update && \
+    apt-get install --no-install-recommends -y postgresql-client-${pgversion} libicu-dev openjdk-8-jdk && \
+    apt-get clean && \
+    update-java-alternatives -s java-${javaversion}-openjdk-amd64 && \
+    export JAVA_HOME=/usr/lib/jvm/java-${javaversion}-openjdk-amd64 && \
+    # Update environmental variables.  R needs to know these changed in its configuration for it to affect package installation.
+    R CMD javareconf
 
-# Update machine and install
-# RUN apt-get update && apt-get install -y --no-install-recommends apt-utils
-# RUN apt-get autoremove -y default-jdk
-RUN apt-get update && apt-get install --no-install-recommends -y postgresql-client-${pgversion} libicu-dev openjdk-8-jdk && apt-get clean && update-java-alternatives -s java-${javaversion}-openjdk-amd64
 ENV JAVA_HOME /usr/lib/jvm/java-${javaversion}-openjdk-amd64
-RUN JAVA_HOME=/usr/lib/jvm/java-${javaversion}-openjdk-amd64
-RUN apt-get install -y scala
-# Switch to rstudio CRAN mirror (untested)
-# RUN R CMD options(repos = c(CRAN = "https://cran.rstudio.com"))
-# Set environment variable for rJava package installation
 ENV LD_LIBRARY_PATH $JAVA_HOME/jre/lib/amd64:$JAVA_HOME/jre/lib/amd64/server
-# Update environmental variables.  R needs to know these changed in its configuration for it to affect package installation.
-RUN R CMD javareconf
+
 
 ####################
 # HADOOP
@@ -76,9 +66,6 @@ RUN cd /opt && \
 ####################
 # R PACKAGES
 ####################
-# RUN R CMD options(repos = c(CRAN = "https://cran.rstudio.com"))
-# Set environment variable for rJava package installation
-ENV LD_LIBRARY_PATH $JAVA_HOME/jre/lib/amd64:$JAVA_HOME/jre/lib/amd64/server
 # Install R packages
 RUN Rscript -e "install.packages(c(\"functional\", \"R.methodsS3\", \"caTools\", \"RPostgreSQL\", \"RJDBC\", \"housingData\", \"gapminder\", \"glmnet\", \"trelliscopejs\", \"flexdashboard\", \"sparklyr\", \"reticulate\", \"tensorflow\"), repos = 'http://cran.rstudio.com')"
 
@@ -95,7 +82,7 @@ RUN ln -s /usr/local/bin/Rscript /usr/bin/Rscript
 
 # Add path to profile so commands are found if attach to the container
 RUN echo "PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'" >> /etc/profile
-ENV PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'
+ENV PATH="/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH"
 
 # USER rstudio
 # Install rspark test files
