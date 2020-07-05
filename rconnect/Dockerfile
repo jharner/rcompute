@@ -21,12 +21,14 @@ RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-k
     apt-get install --no-install-recommends -y postgresql-client-${pgversion} libicu-dev openjdk-8-jdk && \
     apt-get clean && \
     update-java-alternatives -s java-${javaversion}-openjdk-amd64 && \
-    export JAVA_HOME=/usr/lib/jvm/java-${javaversion}-openjdk-amd64 && \
+    export "JAVA_HOME=/usr/lib/jvm/java-${javaversion}-openjdk-amd64" && \
     # Update environmental variables.  R needs to know these changed in its configuration for it to affect package installation.
     R CMD javareconf
 
 ENV JAVA_HOME /usr/lib/jvm/java-${javaversion}-openjdk-amd64
 ENV LD_LIBRARY_PATH $JAVA_HOME/jre/lib/amd64:$JAVA_HOME/jre/lib/amd64/server
+# Added because it seemed like something wasn't jiving inf the final build.
+RUN echo "JAVA_HOME=/usr/lib/jvm/java-${javaversion}-openjdk-amd64" >> /etc/profile
 
 
 ####################
@@ -106,10 +108,10 @@ RUN chown -R rstudio:rstudio /home/rstudio
 EXPOSE 8787
 EXPOSE 4040
 EXPOSE 4041
-EXPOSE 5432
-EXPOSE 9000
-EXPOSE 50070
-EXPOSE 10000
+# EXPOSE 5432
+# EXPOSE 9000
+# EXPOSE 50070
+# EXPOSE 10000
 
 CMD ["/init"]
 
