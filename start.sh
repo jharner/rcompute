@@ -1,5 +1,5 @@
 #! /bin/bash
-
+docker network create rconnect_work
 while [[ $# -gt 0 ]]
 do
 key=$1
