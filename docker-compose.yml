@@ -1,33 +1,44 @@
 version: '3'
 services:
 
-  rpsql:
+  postgres:
     build: ./rpsql
     restart: always
-    image: rcompute-rpsql
+    image: rconnect-postgres
+    container_name: rpsql
+    hostname: rpsql
     ports:
       - "5432:5432"     # Postgres
+    networks:
+      rconnect-network:
     volumes:
-      - rcompute_pgdata:/opt/pg-data
+      - rconnect_pgdata:/opt/pg-data
 
-
-  rconnect:
+  rstudio:
     build: ./rconnect
     restart: always
-    image: rcompute-rconnect
+    image: rconnect-rstudio
+    container_name: rconnect
+    hostname: rconnect
     environment:
       - PASSWORD=rstudiojh
     ports:
       - "8787:8787"     # RStudio UI
-      - "8080:8080"
-      - "4040:4040"     # Spark Web UI
-      - "4041:4041"
-      #- "8881:8881"
-      #- "8880:8880"
+#      - "4040:4040"     # Spark Web UI
+#      - "4041:4041"
+    networks:
+      rconnect-network:
+      rspark-network:
     volumes:
-      - rcompute_rconnect:/home/rstudio
+      - rconnect_rstudio:/home/rstudio
+#    depends_on:
+#      - hadoop
+#      - hive
 
 volumes:
-  rcompute_pgdata:
-  rcompute_rconnect:
-  
+  rconnect_rstudio:
+  rconnect_pgdata:
+
+networks:
+  rconnect-network:
+  rspark-network:

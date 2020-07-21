@@ -1,0 +1,33 @@
+version: '3'
+services:
+
+  rpsql:
+    build: rpsql-old
+    restart: always
+    image: rcompute-rpsql
+    ports:
+      - "5432:5432"     # Postgres
+    volumes:
+      - rcompute_pgdata:/opt/pg-data
+
+
+  rconnect:
+    build: rconnect-old
+    restart: always
+    image: rcompute-rconnect
+    environment:
+      - PASSWORD=rstudiojh
+    ports:
+      - "8787:8787"     # RStudio UI
+      - "8080:8080"
+      - "4040:4040"     # Spark Web UI
+      - "4041:4041"
+      #- "8881:8881"
+      #- "8880:8880"
+    volumes:
+      - rcompute_rconnect:/home/rstudio
+
+volumes:
+  rcompute_pgdata:
+  rcompute_rconnect:
+  
