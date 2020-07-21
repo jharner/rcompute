@@ -10,7 +10,8 @@ services:
     ports:
       - "5432:5432"     # Postgres
     networks:
-      rconnect-network:
+      rconnect-work:
+        name: rconnect-work
     volumes:
       - rconnect_pgdata:/opt/pg-data
 
@@ -27,8 +28,8 @@ services:
 #      - "4040:4040"     # Spark Web UI
 #      - "4041:4041"
     networks:
-      rconnect-network:
-      rspark-network:
+      rconnect-work:
+        name: rconnect-work
     volumes:
       - rconnect_rstudio:/home/rstudio
 #    depends_on:
@@ -41,4 +42,4 @@ volumes:
 
 networks:
   rconnect-network:
-  rspark-network:
+    name: rconnect-work
