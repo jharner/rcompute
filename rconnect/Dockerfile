@@ -86,27 +86,20 @@ ADD postgresql-42.2.2.jar /opt
 ADD Renviron /usr/local/lib/R/etc/
 ADD hdfs-site.xml core-site.xml log4j.properties /opt/hadoop/etc/hadoop/
 # Create symlink to actual Rscript
-RUN ln -s /usr/local/bin/Rscript /usr/bin/Rscript
-
+RUN ln -s /usr/local/bin/Rscript /usr/bin/Rscript && \
 # Add path to profile so commands are found if attach to the container
-RUN echo "PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'" >> /etc/profile
-# Install TensorFlow Package
-# RUN R -e "install.packages(\"tensorflow\")"
-# USER rstudio
-# Install rspark test files
-# ADD rspark-tests.tar.gz /home/rstudio
+    echo "PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'" >> /etc/profile
+# Get tests and tutorial from Github.
 RUN mkdir /home/rstudio/rspark-tests && \
-git clone https://github.com/jharner/rspark-tests.git /tmp/foo && \
-cd /tmp/foo && \
-git archive master | tar -x -C /home/rstudio/rspark-tests  && \
-cd && \
-rm -rf /tmp/foo
-RUN mkdir /home/rstudio/rspark-tutorial && \
-git clone https://github.com/jharner/rspark-tutorial.git /tmp/foo && \
-cd /tmp/foo && \
-git archive master | tar -x -C /home/rstudio/rspark-tutorial  && \
-cd && \
-rm -rf /tmp/foo
+    git clone https://github.com/jharner/rspark-tests.git /tmp/foo && \
+    cd /tmp/foo && \
+    git archive master | tar -x -C /home/rstudio/rspark-tests  && \
+    mkdir /home/rstudio/rspark-tutorial && \
+    git clone https://github.com/jharner/rspark-tutorial.git /tmp/foo && \
+    cd /tmp/foo && \
+    git archive master | tar -x -C /home/rstudio/rspark-tutorial  && \
+    cd && \
+    rm -rf /tmp/foo
 RUN chown -R rstudio:rstudio /home/rstudio
 # USER root
 EXPOSE 8787
