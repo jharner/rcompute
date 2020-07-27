@@ -92,16 +92,10 @@ RUN ln -s /usr/local/bin/Rscript /usr/bin/Rscript && \
 # Add path to profile so commands are found if attach to the container
     echo "PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'" >> /etc/profile
 # Get tests and tutorial from Github.
-RUN mkdir /home/rstudio/rspark-tests && \
-    git clone https://github.com/jharner/rspark-tests.git /tmp/foo && \
-    cd /tmp/foo && \
-    git archive master | tar -x -C /home/rstudio/rspark-tests  && \
-    mkdir /home/rstudio/rspark-tutorial && \
-    git clone https://github.com/jharner/rspark-tutorial.git /tmp/foo && \
-    cd /tmp/foo && \
-    git archive master | tar -x -C /home/rstudio/rspark-tutorial  && \
-    cd && \
-    rm -rf /tmp/foo
+RUN cd /home/rstudio && \
+    git clone https://github.com/jharner/rspark-tests && \
+    git clone https://github.com/jharner/rspark-tutorial
+
 RUN chown -R rstudio:rstudio /home/rstudio
 # USER root
 EXPOSE 8787
@@ -111,4 +105,15 @@ EXPOSE 8787
 CMD ["/init"]
 
 
-	
+	#RUN mkdir /home/rstudio/rspark-tests && \
+    #    git clone https://github.com/jharner/rspark-tests.git /tmp/foo && \
+    #    cd /tmp/foo && \
+    #    git archive master | tar -x -C /home/rstudio/rspark-tests  && \
+    #    cd && \
+    #    rm -rf /tmp/foo && \
+    #    mkdir /home/rstudio/rspark-tutorial && \
+    #    git clone https://github.com/jharner/rspark-tutorial.git /tmp/foo && \
+    #    cd /tmp/foo && \
+    #    git archive master | tar -x -C /home/rstudio/rspark-tutorial  && \
+    #    cd && \
+    #    rm -rf /tmp/foo
