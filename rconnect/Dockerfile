@@ -22,6 +22,8 @@ RUN apt-get update && \
     apt-get install --no-install-recommends -y postgresql-client-${pgversion} libicu-dev adoptopenjdk-8-hotspot && \
     update-java-alternatives -s adoptopenjdk-8-hotspot-amd64 && \
     R CMD javareconf && \
+    cd /opt && \
+    wget --quiet https://jdbc.postgresql.org/download/postgresql-42.2.14.jar && \
     apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 ####################
@@ -58,7 +60,7 @@ RUN cd /opt && \
 	mv spark-${sparkversion}-bin-hadoop2.7 spark && \
 	rm spark-${sparkversion}-bin-hadoop2.7.tgz && \
 	cp spark/conf/spark-env.sh.template spark/conf/spark-env.sh && \
-	echo "export SPARK_DIST_CLASSPATH=/opt/postgresql-42.2.2.jar:$(/opt/hadoop/bin/hadoop classpath)" >> spark/conf/spark-env.sh && \
+	echo "export SPARK_DIST_CLASSPATH=/opt/postgresql-42.2.14.jar:$(/opt/hadoop/bin/hadoop classpath)" >> spark/conf/spark-env.sh && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 ####################
@@ -78,7 +80,7 @@ RUN cd /tmp/pkgs && R CMD INSTALL rmr2 rhdfs
 ADD protobuf-2.5.0.tar.gz Rhipe_0.75.2_hadoop-2.tar.gz /tmp/
 RUN cd /tmp/protobuf-2.5.0 && ./configure --prefix=/usr && make && make install && cd .. 	&& rm -rf protobuf-* && \
 	cd /tmp/Rhipe && R CMD INSTALL . && cd .. && rm -rf Rhipe
-ADD postgresql-42.2.2.jar /opt
+# ADD postgresql-42.2.2.jar /opt
 ####################
 # ENVIRONMENT CONFIG
 ####################
