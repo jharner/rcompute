@@ -7,6 +7,23 @@ The `rconnect` image can be built by issuing the following docker command from t
 The `rconnect` container can be run using the following docker command from the rconnect directory:
 `docker run -e PASSWORD=rstudiojh  -p 8787:8787 rconnect`
 
+### Build the Containers
+To build `rcompute` using `docker-compose`, run the following in the base build directory:
+<!--
+```console
+r-user@computer:~$ bash ./start.sh build 
+```
+-->
+
+```shell script
+bash ./start.sh build
+```
+Note, if there are already Docker containers for other `rcompute` modules, all additional containers 
+ will share a common network in Docker called `rconnect`.  If this network does 
+not already exist, the `docker-compose up` will create it.
+
+### Managing Containers 
+
 To clear out containers, orphan images, hanging volumes, unused networks, etc., the 
 `dockill.sh` script provided serves as a utility to clear the system.  CAUTION: Option 
 `4` clears all images, so users may want to skip this step or delete images manually 
