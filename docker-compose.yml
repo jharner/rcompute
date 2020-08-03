@@ -30,9 +30,6 @@ services:
       rconnect_network:
     volumes:
       - rconnect_rstudio:/home/rstudio
-#    depends_on:
-#      - hadoop
-#      - hive
 
 volumes:
   rconnect_rstudio:
