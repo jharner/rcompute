@@ -85,6 +85,9 @@ RUN cd /tmp/pkgs && R CMD INSTALL rmr2 rhdfs
 ADD protobuf-2.5.0.tar.gz Rhipe_0.75.2_hadoop-2.tar.gz /tmp/
 RUN cd /tmp/protobuf-2.5.0 && ./configure --prefix=/usr && make && make install && cd .. 	&& rm -rf protobuf-* && \
 	cd /tmp/Rhipe && R CMD INSTALL . && cd .. && rm -rf Rhipe
+RUN echo "JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64" >> /etc/profile
+RUN echo "JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64" >> $HADOOP_HOME/etc/hadoop/hadoop-env.sh
+RUN export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64
 # ADD postgresql-42.2.2.jar /opt
 ####################
 # ENVIRONMENT CONFIG
@@ -92,10 +95,13 @@ RUN cd /tmp/protobuf-2.5.0 && ./configure --prefix=/usr && make && make install 
 # Add necessary mods to Renviron file
 ADD Renviron /usr/local/lib/R/etc/
 ADD hdfs-site.xml core-site.xml log4j.properties /opt/hadoop/etc/hadoop/
+ENV PATH=/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH
 # Create symlink to actual Rscript
 RUN ln -s /usr/local/bin/Rscript /usr/bin/Rscript && \
 # Add path to profile so commands are found if attach to the container
-    echo "PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'" >> /etc/profile
+    echo "PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'" >> /etc/profile && \
+    export PATH=/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH && \
+    echo "PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'" >> /home/rstudio/.bashrc
 # Get tests and tutorial from Github.
 RUN cd /home/rstudio && \
     git clone https://github.com/jharner/rspark-tests && \
