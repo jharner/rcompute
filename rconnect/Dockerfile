@@ -116,15 +116,3 @@ EXPOSE 8787
 CMD ["/init"]
 
 
-	#RUN mkdir /home/rstudio/rspark-tests && \
-    #    git clone https://github.com/jharner/rspark-tests.git /tmp/foo && \
-    #    cd /tmp/foo && \
-    #    git archive master | tar -x -C /home/rstudio/rspark-tests  && \
-    #    cd && \
-    #    rm -rf /tmp/foo && \
-    #    mkdir /home/rstudio/rspark-tutorial && \
-    #    git clone https://github.com/jharner/rspark-tutorial.git /tmp/foo && \
-    #    cd /tmp/foo && \
-    #    git archive master | tar -x -C /home/rstudio/rspark-tutorial  && \
-    #    cd && \
-    #    rm -rf /tmp/foo
