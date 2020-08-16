@@ -22,6 +22,13 @@ RUN apt-get update && \
     apt-get install --no-install-recommends -y postgresql-client-${pgversion} libicu-dev adoptopenjdk-8-hotspot && \
     update-java-alternatives -s adoptopenjdk-8-hotspot-amd64 && \
     R CMD javareconf && \
+    cd /opt && \
+    wget https://apache.bintray.com/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-archive-keyring-latest-$(lsb_release --codename --short).deb && \
+    apt-get install -y -V ./apache-arrow-archive-keyring-latest-$(lsb_release --codename --short).deb && \
+    apt-get update && \
+    apt-get install -y -V libarrow-dev libarrow-glib-dev libarrow-dataset-dev libarrow-flight-dev libplasma-dev libplasma-glib-dev libgandiva-dev libgandiva-glib-dev libparquet-dev libparquet-glib-dev && \
+    rm ./apache-arrow-archive-keyring-latest-$(lsb_release --codename --short).deb && \
+    wget --quiet https://jdbc.postgresql.org/download/postgresql-42.2.14.jar && \
     apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 ####################
@@ -58,7 +65,7 @@ RUN cd /opt && \
 	mv spark-${sparkversion}-bin-hadoop2.7 spark && \
 	rm spark-${sparkversion}-bin-hadoop2.7.tgz && \
 	cp spark/conf/spark-env.sh.template spark/conf/spark-env.sh && \
-	echo "export SPARK_DIST_CLASSPATH=/opt/postgresql-42.2.2.jar:$(/opt/hadoop/bin/hadoop classpath)" >> spark/conf/spark-env.sh && \
+	echo "export SPARK_DIST_CLASSPATH=/opt/postgresql-42.2.14.jar:$(/opt/hadoop/bin/hadoop classpath)" >> spark/conf/spark-env.sh && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 ####################
@@ -69,7 +76,7 @@ RUN cd /opt && \
 # Set environment variable for rJava package installation
 ENV LD_LIBRARY_PATH $JAVA_HOME/jre/lib/amd64:$JAVA_HOME/jre/lib/amd64/server
 # Install R packages
-RUN Rscript -e "install.packages(c(\"rjson\", \"RJSONIO\", \"jsonlite\", \"functional\", \"R.methodsS3\", \"caTools\", \"trelliscopejs\", \"RPostgreSQL\", \"RJDBC\", \"housingData\", \"Lahman\", \"nycflights13\", \"flexdashboard\", \"sparklyr\", \"glmnet\", \"reticulate\", \"tensorflow\"), repos = 'http://cran.rstudio.com')"
+RUN Rscript -e "install.packages(c(\"arrow\", \"rjson\", \"RJSONIO\", \"jsonlite\", \"functional\", \"R.methodsS3\", \"caTools\", \"trelliscopejs\", \"RPostgreSQL\", \"RJDBC\", \"housingData\", \"Lahman\", \"nycflights13\", \"flexdashboard\", \"sparklyr\", \"glmnet\", \"reticulate\", \"tensorflow\"), repos = 'http://cran.rstudio.com')"
 # Copy repository packages to filesystem
 ADD rhdfs.tar.gz rmr.tar.gz /tmp/pkgs/
 # Install repository packages
@@ -78,42 +85,34 @@ RUN cd /tmp/pkgs && R CMD INSTALL rmr2 rhdfs
 ADD protobuf-2.5.0.tar.gz Rhipe_0.75.2_hadoop-2.tar.gz /tmp/
 RUN cd /tmp/protobuf-2.5.0 && ./configure --prefix=/usr && make && make install && cd .. 	&& rm -rf protobuf-* && \
 	cd /tmp/Rhipe && R CMD INSTALL . && cd .. && rm -rf Rhipe
-ADD postgresql-42.2.2.jar /opt
+RUN echo "JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64" >> /etc/profile
+RUN echo "JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64" >> $HADOOP_HOME/etc/hadoop/hadoop-env.sh
+RUN export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64
+# ADD postgresql-42.2.2.jar /opt
 ####################
 # ENVIRONMENT CONFIG
 ####################
 # Add necessary mods to Renviron file
 ADD Renviron /usr/local/lib/R/etc/
 ADD hdfs-site.xml core-site.xml log4j.properties /opt/hadoop/etc/hadoop/
+ENV PATH=/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH
 # Create symlink to actual Rscript
-RUN ln -s /usr/local/bin/Rscript /usr/bin/Rscript
-
+RUN ln -s /usr/local/bin/Rscript /usr/bin/Rscript && \
 # Add path to profile so commands are found if attach to the container
-RUN echo "PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'" >> /etc/profile
-# Install TensorFlow Package
-# RUN R -e "install.packages(\"tensorflow\")"
-# USER rstudio
-# Install rspark test files
-# ADD rspark-tests.tar.gz /home/rstudio
-RUN mkdir /home/rstudio/rspark-tests && \
-git clone https://github.com/jharner/rspark-tests.git /tmp/foo && \
-cd /tmp/foo && \
-git archive master | tar -x -C /home/rstudio/rspark-tests  && \
-cd && \
-rm -rf /tmp/foo
-RUN mkdir /home/rstudio/rspark-tutorial && \
-git clone https://github.com/jharner/rspark-tutorial.git /tmp/foo && \
-cd /tmp/foo && \
-git archive master | tar -x -C /home/rstudio/rspark-tutorial  && \
-cd && \
-rm -rf /tmp/foo
+    echo "PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'" >> /etc/profile && \
+    export PATH=/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH && \
+    echo "PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'" >> /home/rstudio/.bashrc
+# Get tests and tutorial from Github.
+RUN cd /home/rstudio && \
+    git clone https://github.com/jharner/rspark-tests && \
+    git clone https://github.com/jharner/rspark-tutorial
+
 RUN chown -R rstudio:rstudio /home/rstudio
 # USER root
 EXPOSE 8787
-EXPOSE 4040
-EXPOSE 4041
+# EXPOSE 4040
+# EXPOSE 4041
 
 CMD ["/init"]
 
 
-	
