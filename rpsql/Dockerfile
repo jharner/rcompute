@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y  apt-utils apt-transport-https ca-certi
 # Copy data file
 COPY dataexpo.sql nycflights13.sql.gz init.sh /opt/
 
-# Become user Postgres (superuser)
+# Become user postgres (superuser)
 USER postgres
 
 # Copy connection configuration file

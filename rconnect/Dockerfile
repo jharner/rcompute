@@ -8,8 +8,12 @@ ARG sparkversion=2.4.6
 ARG javaversion=8
 ARG javaversion_number=1.${javaversion}.0
 ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
-####  ENV JAVA_HOME /usr/lib/jvm/java-${java_version}-openjdk-amd64
+
+#  ENV JAVA_HOME /usr/lib/jvm/java-${java_version}-openjdk-amd64
 ENV JAVA_HOME /usr/lib/jvm/adoptopenjdk-8-hotspot-amd64
+
+## OpenJDK, Postgres client, and Arrow
+
 COPY postgresKey.asc openjdkKey.asc /tmp/
 RUN apt-get update && \
     apt-get install -y apt-utils apt-transport-https ca-certificates wget dirmngr gnupg software-properties-common && \
@@ -31,9 +35,9 @@ RUN apt-get update && \
     wget --quiet https://jdbc.postgresql.org/download/postgresql-42.2.14.jar && \
     apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
-####################
-# HADOOP
-####################
+
+## HADOOP
+
 # Download and Install Hadoop and set Hadoop environment variable
 ENV HADOOP_CMD=/opt/hadoop/bin/hadoop
 ENV HADOOP_HOME=/opt/hadoop
@@ -46,18 +50,18 @@ RUN cd /opt && \
 	rm hadoop-${hadoopversion}.tar.gz && \
 	(cd /opt/hadoop; ln -s share/hadoop/tools/lib/hadoop-streaming-${hadoopversion}.jar hadoop-streaming.jar) && \
 	chown -R rstudio:rstudio /opt/hadoop && \
-####################
-# HIVE
-####################
+
+## HIVE
+
     cd /opt && \
 	wget --quiet http://archive.apache.org/dist/hive/hive-${hiveversion}/apache-hive-${hiveversion}-bin.tar.gz && \
 	tar zxf apache-hive-${hiveversion}-bin.tar.gz && \
 	ln -s apache-hive-${hiveversion}-bin hive && \
 	ln -s /opt/hive/jdbc/hive-jdbc-${hiveversion}-standalone.jar /opt/hive/lib/ && \
 	rm apache-hive-${hiveversion}-bin.tar.gz && \
-####################
-# SPARK
-####################
+
+## SPARK
+
 # Install Spark
     cd /opt && \
 	wget --quiet http://archive.apache.org/dist/spark/spark-${sparkversion}/spark-${sparkversion}-bin-hadoop2.7.tgz && \
@@ -68,13 +72,15 @@ RUN cd /opt && \
 	echo "export SPARK_DIST_CLASSPATH=/opt/postgresql-42.2.14.jar:$(/opt/hadoop/bin/hadoop classpath)" >> spark/conf/spark-env.sh && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
-####################
-# R PACKAGES
-####################
+
+## R PACKAGES
+
 # Switch to rstudio CRAN mirror (untested)
 # RUN R CMD options(repos = c(CRAN = "https://cran.rstudio.com"))
+
 # Set environment variable for rJava package installation
 ENV LD_LIBRARY_PATH $JAVA_HOME/jre/lib/amd64:$JAVA_HOME/jre/lib/amd64/server
+
 # Install R packages
 RUN Rscript -e "install.packages(c(\"arrow\", \"rjson\", \"RJSONIO\", \"jsonlite\", \"functional\", \"R.methodsS3\", \"caTools\", \"trelliscopejs\", \"RPostgreSQL\", \"RJDBC\", \"housingData\", \"Lahman\", \"nycflights13\", \"flexdashboard\", \"sparklyr\", \"glmnet\", \"reticulate\", \"tensorflow\"), repos = 'http://cran.rstudio.com')"
 # Copy repository packages to filesystem
@@ -89,16 +95,17 @@ RUN echo "JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64" >> /etc/profile
 RUN echo "JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64" >> $HADOOP_HOME/etc/hadoop/hadoop-env.sh
 RUN export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64
 # ADD postgresql-42.2.2.jar /opt
-####################
-# ENVIRONMENT CONFIG
-####################
+
+
+## ENVIRONMENT CONFIG
+
 # Add necessary mods to Renviron file
 ADD Renviron /usr/local/lib/R/etc/
 ADD hdfs-site.xml core-site.xml log4j.properties /opt/hadoop/etc/hadoop/
 ENV PATH=/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH
 # Create symlink to actual Rscript
 RUN ln -s /usr/local/bin/Rscript /usr/bin/Rscript && \
-# Add path to profile so commands are found if attach to the container
+# Add path to profile so commands are found if attached to the container
     echo "PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'" >> /etc/profile && \
     export PATH=/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH && \
     echo "PATH='/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH'" >> /home/rstudio/.bashrc
