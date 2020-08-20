@@ -3,7 +3,7 @@ MAINTAINER Jim Harner <ejharner@gmail.com>
 
 ARG pgversion=9.6
 ARG hadoopversion=2.9.2
-ARG hiveversion=2.1.1
+ARG hiveversion=2.3.7
 ARG sparkversion=2.4.6
 ARG javaversion=8
 ARG javaversion_number=1.${javaversion}.0
@@ -117,8 +117,8 @@ RUN cd /home/rstudio && \
 RUN chown -R rstudio:rstudio /home/rstudio
 # USER root
 EXPOSE 8787
-# EXPOSE 4040
-# EXPOSE 4041
+EXPOSE 4040
+EXPOSE 4041
 
 CMD ["/init"]
 
