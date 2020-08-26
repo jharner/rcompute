@@ -1,9 +1,9 @@
 FROM rocker/verse:3.6.3-ubuntu18.04
 MAINTAINER Jim Harner <ejharner@gmail.com>
 
-ARG pgversion=9.6
+ARG pgversion=12
 ARG hadoopversion=2.9.2
-ARG hiveversion=2.1.1
+ARG hiveversion=2.3.7
 ARG sparkversion=2.4.6
 ARG javaversion=8
 ARG javaversion_number=1.${javaversion}.0
@@ -16,15 +16,15 @@ ENV JAVA_HOME /usr/lib/jvm/adoptopenjdk-8-hotspot-amd64
 
 COPY postgresKey.asc openjdkKey.asc /tmp/
 RUN apt-get update && \
-    apt-get install -y apt-utils apt-transport-https ca-certificates wget dirmngr gnupg software-properties-common && \
+    apt-get install -y apt-utils apt-transport-https ca-certificates wget dirmngr gnupg software-properties-common autoconf automake libtool curl make g++ unzip && \
     apt-key add /tmp/postgresKey.asc && \
     apt-key add /tmp/openjdkKey.asc && \
     add-apt-repository --yes 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' && \
 	add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ && \
 # Update machine and install
     apt-get update && \
-    apt-get install --no-install-recommends -y postgresql-client-${pgversion} libicu-dev adoptopenjdk-8-hotspot && \
-    update-java-alternatives -s adoptopenjdk-8-hotspot-amd64 && \
+    apt-get install --no-install-recommends -y postgresql-client-${pgversion} libicu-dev adoptopenjdk-${javaversion}-hotspot && \
+    update-java-alternatives -s adoptopenjdk-${javaversion}-hotspot-amd64 && \
     R CMD javareconf && \
     cd /opt && \
     wget https://apache.bintray.com/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-archive-keyring-latest-$(lsb_release --codename --short).deb && \
@@ -88,12 +88,28 @@ ADD rhdfs.tar.gz rmr.tar.gz /tmp/pkgs/
 # Install repository packages
 RUN cd /tmp/pkgs && R CMD INSTALL rmr2 rhdfs
 
-ADD protobuf-2.5.0.tar.gz Rhipe_0.75.2_hadoop-2.tar.gz /tmp/
-RUN cd /tmp/protobuf-2.5.0 && ./configure --prefix=/usr && make && make install && cd .. 	&& rm -rf protobuf-* && \
-	cd /tmp/Rhipe && R CMD INSTALL . && cd .. && rm -rf Rhipe
-RUN echo "JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64" >> /etc/profile
-RUN echo "JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64" >> $HADOOP_HOME/etc/hadoop/hadoop-env.sh
-RUN export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64
+RUN cd /opt && \
+    git clone https://github.com/google/protobuf.git && \
+    cd protobuf && \
+    git submodule update --init --recursive && \
+    ./autogen.sh && \
+    ./configure --prefix=/usr && \
+    make && \
+    make check && \
+    make install && \
+    ldconfig && \
+    cd .. && \
+    rm -rf protobuf-*
+
+# ADD protobuf-2.5.0.tar.gz Rhipe_0.75.2_hadoop-2.tar.gz /tmp/
+#RUN cd /tmp/protobuf-2.5.0 && ./configure --prefix=/usr && make && make install && cd .. 	&& rm -rf protobuf-* && \
+#	cd /tmp/Rhipe && R CMD INSTALL . && cd .. && rm -rf Rhipe
+# ADD Rhipe_0.75.2_hadoop-2.tar.gz /tmp/
+
+# RUN cd /tmp/Rhipe && R CMD INSTALL . && cd .. && rm -rf Rhipe
+RUN echo "JAVA_HOME=/usr/lib/jvm/adoptopenjdk-${javaversion}-hotspot-amd64" >> /etc/profile
+RUN echo "JAVA_HOME=/usr/lib/jvm/adoptopenjdk-${javaversion}-hotspot-amd64" >> $HADOOP_HOME/etc/hadoop/hadoop-env.sh
+RUN export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-${javaversion}-hotspot-amd64
 # ADD postgresql-42.2.2.jar /opt
 
 
@@ -101,7 +117,8 @@ RUN export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64
 
 # Add necessary mods to Renviron file
 ADD Renviron /usr/local/lib/R/etc/
-ADD hdfs-site.xml core-site.xml log4j.properties /opt/hadoop/etc/hadoop/
+ADD hdfs-site.xml core-site.xml hive-exec-log4j2.properties hive-log4j2.properties /opt/hadoop/etc/hadoop/
+# ADD hdfs-site.xml core-site.xml log4j.properties /opt/hadoop/etc/hadoop/
 ENV PATH=/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH
 # Create symlink to actual Rscript
 RUN ln -s /usr/local/bin/Rscript /usr/bin/Rscript && \
@@ -123,3 +140,17 @@ EXPOSE 8787
 CMD ["/init"]
 
 
+#echo "deb https://dl.bintray.com/sbt/debian /" | tee -a /etc/apt/sources.list.d/sbt.list
+#curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | sudo apt-key add
+#apt-get update
+#apt-get install sbt
+
+#apt-get install autoconf automake libtool curl make g++ unzip -y
+#git clone https://github.com/google/protobuf.git
+#cd protobuf
+#git submodule update --init --recursive
+#./autogen.sh
+#make
+#make check
+#make install
+#ldconfig
