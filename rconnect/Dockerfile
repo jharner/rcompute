@@ -2,9 +2,9 @@ FROM rocker/verse:3.6.3-ubuntu18.04
 MAINTAINER Jim Harner <ejharner@gmail.com>
 
 ARG pgversion=12
-ARG hadoopversion=2.9.2
+ARG hadoopversion=2.10.0
 ARG hiveversion=2.3.7
-ARG sparkversion=2.4.6
+ARG sparkversion=3.0.0
 ARG javaversion=8
 ARG javaversion_number=1.${javaversion}.0
 ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
@@ -58,6 +58,7 @@ RUN cd /opt && \
 	tar zxf apache-hive-${hiveversion}-bin.tar.gz && \
 	ln -s apache-hive-${hiveversion}-bin hive && \
 	ln -s /opt/hive/jdbc/hive-jdbc-${hiveversion}-standalone.jar /opt/hive/lib/ && \
+	chown -R rstudio:rstudio /opt/hive && \
 	rm apache-hive-${hiveversion}-bin.tar.gz && \
 
 ## SPARK
@@ -67,6 +68,7 @@ RUN cd /opt && \
 	wget --quiet http://archive.apache.org/dist/spark/spark-${sparkversion}/spark-${sparkversion}-bin-hadoop2.7.tgz && \
 	tar zxf spark-${sparkversion}-bin-hadoop2.7.tgz && \
 	mv spark-${sparkversion}-bin-hadoop2.7 spark && \
+	chown -R rstudio:rstudio /opt/spark && \
 	rm spark-${sparkversion}-bin-hadoop2.7.tgz && \
 	cp spark/conf/spark-env.sh.template spark/conf/spark-env.sh && \
 	echo "export SPARK_DIST_CLASSPATH=/opt/postgresql-42.2.14.jar:$(/opt/hadoop/bin/hadoop classpath)" >> spark/conf/spark-env.sh && \
@@ -88,22 +90,22 @@ ADD rhdfs.tar.gz rmr.tar.gz /tmp/pkgs/
 # Install repository packages
 RUN cd /tmp/pkgs && R CMD INSTALL rmr2 rhdfs
 
-RUN cd /opt && \
-    git clone https://github.com/google/protobuf.git && \
-    cd protobuf && \
-    git submodule update --init --recursive && \
-    ./autogen.sh && \
-    ./configure --prefix=/usr && \
-    make && \
-    make check && \
-    make install && \
-    ldconfig && \
-    cd .. && \
-    rm -rf protobuf-*
+#RUN cd /opt && \
+#    git clone https://github.com/google/protobuf.git && \
+#    cd protobuf && \
+#    git submodule update --init --recursive && \
+#    ./autogen.sh && \
+#    ./configure --prefix=/usr && \
+#    make && \
+#    make check && \
+#    make install && \
+#    ldconfig && \
+#    cd .. && \
+#    rm -rf protobuf-*
 
-# ADD protobuf-2.5.0.tar.gz Rhipe_0.75.2_hadoop-2.tar.gz /tmp/
-#RUN cd /tmp/protobuf-2.5.0 && ./configure --prefix=/usr && make && make install && cd .. 	&& rm -rf protobuf-* && \
-#	cd /tmp/Rhipe && R CMD INSTALL . && cd .. && rm -rf Rhipe
+ADD protobuf-2.5.0.tar.gz Rhipe_0.75.2_hadoop-2.tar.gz /tmp/
+RUN cd /tmp/protobuf-2.5.0 && ./configure --prefix=/usr && make && make install && cd .. 	&& rm -rf protobuf-* && \
+	cd /tmp/Rhipe && R CMD INSTALL . && cd .. && rm -rf Rhipe
 # ADD Rhipe_0.75.2_hadoop-2.tar.gz /tmp/
 
 # RUN cd /tmp/Rhipe && R CMD INSTALL . && cd .. && rm -rf Rhipe
@@ -154,3 +156,13 @@ CMD ["/init"]
 #make check
 #make install
 #ldconfig
+
+#    cd "/tmp" && \
+#    wget --no-verbose "https://downloads.typesafe.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.tgz" && \
+#    tar xzf "scala-${SCALA_VERSION}.tgz" && \
+#    mkdir "${SCALA_HOME}" && \
+#    rm "/tmp/scala-${SCALA_VERSION}/bin/"*.bat && \
+#    mv "/tmp/scala-${SCALA_VERSION}/bin" "/tmp/scala-${SCALA_VERSION}/lib" "${SCALA_HOME}" && \
+#    ln -s "${SCALA_HOME}/bin/"* "/usr/bin/" && \
+#    apk del .build-dependencies && \
+#    rm -rf "/tmp/"*
