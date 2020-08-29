@@ -3,7 +3,7 @@ MAINTAINER Jim Harner <ejharner@gmail.com>
 
 ARG pgversion=12
 ARG hadoopversion=2.10.0
-ARG hiveversion=2.3.7
+ARG hiveversion=2.1.1
 ARG sparkversion=3.0.0
 ARG javaversion=8
 ARG javaversion_number=1.${javaversion}.0
@@ -43,6 +43,8 @@ ENV HADOOP_CMD=/opt/hadoop/bin/hadoop
 ENV HADOOP_HOME=/opt/hadoop
 ENV HADOOP_BIN=/opt/hadoop/bin
 ENV HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+ENV HIVE_HOME=/opt/hive
+ENV SPARK_HOME=/opt/spark
 RUN cd /opt && \
     wget --quiet http://archive.apache.org/dist/hadoop/core/hadoop-${hadoopversion}/hadoop-${hadoopversion}.tar.gz && \
 	tar zxf hadoop-${hadoopversion}.tar.gz && \
@@ -52,7 +54,6 @@ RUN cd /opt && \
 	chown -R rstudio:rstudio /opt/hadoop && \
 
 ## HIVE
-
     cd /opt && \
 	wget --quiet http://archive.apache.org/dist/hive/hive-${hiveversion}/apache-hive-${hiveversion}-bin.tar.gz && \
 	tar zxf apache-hive-${hiveversion}-bin.tar.gz && \
@@ -62,7 +63,6 @@ RUN cd /opt && \
 	rm apache-hive-${hiveversion}-bin.tar.gz && \
 
 ## SPARK
-
 # Install Spark
     cd /opt && \
 	wget --quiet http://archive.apache.org/dist/spark/spark-${sparkversion}/spark-${sparkversion}-bin-hadoop2.7.tgz && \
@@ -76,10 +76,7 @@ RUN cd /opt && \
 	rm -rf /var/lib/apt/lists/*
 
 ## R PACKAGES
-
-# Switch to rstudio CRAN mirror (untested)
-# RUN R CMD options(repos = c(CRAN = "https://cran.rstudio.com"))
-
+# Switch to rstudio CRAN mirror
 # Set environment variable for rJava package installation
 ENV LD_LIBRARY_PATH $JAVA_HOME/jre/lib/amd64:$JAVA_HOME/jre/lib/amd64/server
 
@@ -119,8 +116,8 @@ RUN export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-${javaversion}-hotspot-amd64
 
 # Add necessary mods to Renviron file
 ADD Renviron /usr/local/lib/R/etc/
-ADD hdfs-site.xml core-site.xml hive-exec-log4j2.properties hive-log4j2.properties /opt/hadoop/etc/hadoop/
-# ADD hdfs-site.xml core-site.xml log4j.properties /opt/hadoop/etc/hadoop/
+#ADD hdfs-site.xml core-site.xml hive-exec-log4j2.properties hive-log4j2.properties /opt/hadoop/etc/hadoop/
+ADD hdfs-site.xml core-site.xml log4j.properties /opt/hadoop/etc/hadoop/
 ENV PATH=/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH
 # Create symlink to actual Rscript
 RUN ln -s /usr/local/bin/Rscript /usr/bin/Rscript && \
