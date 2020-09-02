@@ -92,7 +92,7 @@ RUN export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-${javaversion}-hotspot-amd64
 # Add necessary mods to Renviron file
 ADD Renviron /usr/local/lib/R/etc/
 ADD log4j.properties /opt/hadoop/etc/hadoop/
-# ADD hdfs-site.xml core-site.xml log4j.properties /opt/hadoop/etc/hadoop/
+ADD hdfs-site.xml core-site.xml log4j.properties /opt/hadoop/etc/hadoop/
 ENV PATH=/opt/hadoop/bin:/opt/spark/bin:/opt/hive/bin:$PATH
 # Create symlink to actual Rscript
 RUN ln -s /usr/local/bin/Rscript /usr/bin/Rscript && \
