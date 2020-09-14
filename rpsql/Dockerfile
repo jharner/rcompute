@@ -10,7 +10,7 @@ ENV PGDIR /usr/lib/postgresql/${pgversion}/bin/
 ENV PGVERSION ${pgversion}
 
 # Add the PostgreSQL PGP key to verify their Debian packages.
-COPY postgresKey.asc /tmp/
+ADD postgresKey.asc /tmp/
 
 RUN apt-get update && apt-get install -y  apt-utils apt-transport-https ca-certificates \
 	wget dirmngr gnupg software-properties-common && \
@@ -27,14 +27,14 @@ RUN apt-get update && apt-get install -y  apt-utils apt-transport-https ca-certi
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 # Copy data file
-COPY dataexpo.sql nycflights13.sql.gz init.sh /opt/
+ADD dataexpo.sql nycflights13.sql.gz init.sh /opt/
 
 # Become user postgres (superuser)
 USER postgres
 
 # Copy connection configuration file
-COPY pg_hba.conf postgresql.conf /etc/postgresql/${pgversion}/main/
-COPY runpg.sh /var/lib/postgresql/runpg.sh
+ADD pg_hba.conf postgresql.conf /etc/postgresql/${pgversion}/main/
+ADD runpg.sh /var/lib/postgresql/runpg.sh
 RUN /opt/init.sh
 
 # Define environment variables
