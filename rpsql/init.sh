@@ -15,19 +15,19 @@ chown postgres /opt/pg-data
 ls -ld $PGDATA
 
 export PATH=/usr/lib/postgresql/12/bin:$PATH
-initdb -D /opt/pg-data
-pg_ctl -D /opt/pg-data start
-sleep 10
-psql --command "create user rstudio createdb"
-psql --command "create user hive"
-createdb -O rstudio rstudio
-createdb -O hive hive
-createdb -O rstudio dataexpo
-createdb -O rstudio testdb
-createdb -O rstudio nycflights13
-psql -U rstudio dataexpo < /opt/dataexpo.sql  > /dev/null
-gunzip -c /opt/nycflights13.sql.gz | psql -U rstudio nycflights13 > /dev/null
-service postgresql stop
+#initdb -D /opt/pg-data
+#pg_ctl -D /opt/pg-data start
+#sleep 10
+#psql --command "create user rstudio createdb"
+#psql --command "create user hive"
+#createdb -O rstudio rstudio
+#createdb -O hive hive
+#createdb -O rstudio dataexpo
+#createdb -O rstudio testdb
+#createdb -O rstudio nycflights13
+#psql -U rstudio dataexpo < /opt/dataexpo.sql  > /dev/null
+#gunzip -c /opt/nycflights13.sql.gz | psql -U rstudio nycflights13 > /dev/null
+#service postgresql stop
 
 echo "$PGDATA does not exist. creating database."
 ${appdir}/initdb -D $PGDATA
@@ -43,8 +43,9 @@ createdb -p ${tmpport} -O rstudio nycflights13
 createdb -p ${tmpport} -O rstudio testdb
 
 psql -p ${tmpport} -U rstudio dataexpo </opt/dataexpo.sql >/dev/null
-gunzip -c /opt/nycflights13.sql.gz | psql -p ${tmpport} -U rstudio nycflights13 > /dev/null
-#psql -p ${tmpport} -U rstudio nycflights13 </opt/nycflights.sql >/dev/null
+# gunzip -c /opt/nycflights13.sql.gz | psql -p ${tmpport} -U rstudio nycflights13 > /dev/null
+psql -p ${tmpport} -U rstudio nycflights13 </opt/nycflights.sql >/dev/null
+
 #just to be sure, as there were problems accessing this once
 psql -p ${tmpport} --command "GRANT ALL PRIVILEGES ON DATABASE dataexpo TO rstudio"
 psql -p ${tmpport} --command "GRANT ALL PRIVILEGES ON DATABASE nycflights13 TO rstudio"
