@@ -14,6 +14,22 @@ services:
     volumes:
       - rconnect_pgdata:/opt/pg-data
 
+
+  hive:
+    build: ./rhive
+    restart: always
+    image: rhadoop-hive
+    container_name: rhive
+    hostname: rhive
+    ports:
+      - "10000:10000"
+      - "9999:9999"  ##Hive UI
+      - "9083:9083"  ## Hive Metastore
+    networks:
+      rconnect_network:
+    depends_on:
+      - postgres
+
   rstudio:
     build: ./rconnect
     restart: always
