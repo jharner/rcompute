@@ -30,8 +30,8 @@ createdb -p ${tmpport} -O rstudio nycflights13
 createdb -p ${tmpport} -O rstudio testdb
 
 psql -p ${tmpport} -U rstudio dataexpo </opt/dataexpo.sql >/dev/null
-# gunzip -c /opt/nycflights13.sql.gz | psql -p ${tmpport} -U rstudio nycflights13 > /dev/null
-psql -p ${tmpport} -U rstudio nycflights13 </opt/nycflights.sql >/dev/null
+gunzip -c /opt/nycflights13.sql.gz | psql -p ${tmpport} -U rstudio nycflights13 > /dev/null
+# psql -p ${tmpport} -U rstudio nycflights13 </opt/nycflights.sql >/dev/null
 
 #just to be sure, as there were problems accessing this once
 psql -p ${tmpport} --command "GRANT ALL PRIVILEGES ON DATABASE dataexpo TO rstudio"
