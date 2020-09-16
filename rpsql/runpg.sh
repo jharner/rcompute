@@ -35,7 +35,6 @@ if [ ! -d "${PGDATA}/base" ]; then
 	psql -p ${tmpport} --command "GRANT ALL PRIVILEGES ON DATABASE nycflights13 TO rstudio"
 	psql -p ${tmpport} --command "GRANT ALL PRIVILEGES ON DATABASE testdb TO rstudio"
 	service postgresql stop
-	cd /usr/share/postgresql/${pgversion}
 fi
 
 /usr/bin/pg_ctlcluster 12 main start --foreground
