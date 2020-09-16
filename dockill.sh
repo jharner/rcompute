@@ -1,5 +1,6 @@
 #! /bin/sh
 NO_EXIT=1
+
 while  [ ${NO_EXIT} = 1 ]
 do
   echo $'\n'
